@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#176b45">
+  <meta name="description" content="Carte interactive de la commune de Loumbila">
+  <title>Carte interactive de Loumbila</title>
+  <link rel="stylesheet" href="./resources/ol.css">
+  <link rel="stylesheet" href="./resources/fontawesome-all.min.css">
+  <link rel="stylesheet" href="./resources/photon-geocoder-autocomplete.min.css">
+  <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
+  <link rel="stylesheet" href="./resources/qgis2web.css">
+  <link rel="stylesheet" href="./app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="flag-stripe" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="brand-mark burkina-flag" role="img" aria-label="Drapeau du Burkina Faso"><span class="flag-red"></span><span class="flag-green"></span><span class="flag-star">★</span></div>
+      <div class="brand-copy">
+        <p class="eyebrow">WEB SIG · BURKINA FASO</p>
+        <h1>Carte interactive <span>de Loumbila</span></h1>
+        <p class="subtitle">Explorez les localités, les cours d’eau et les plans d’eau de la commune.</p>
+      </div>
+      <button class="header-badge dashboard-toggle" id="dashboard-toggle" type="button" aria-controls="dashboard" aria-expanded="false"><i class="fas fa-chart-pie"></i><span>TABLEAU<br><b>DE BORD</b></span></button>
+    </header>
+
+    <section class="dashboard" id="dashboard" aria-labelledby="dashboard-title" hidden>
+      <div class="dashboard-top"><div class="dashboard-heading"><p>TABLEAU DE BORD</p><h2 id="dashboard-title">Repères du territoire</h2></div><button class="dashboard-close" id="dashboard-close" type="button" aria-label="Fermer le tableau de bord"><i class="fas fa-times"></i></button></div>
+      <div class="dashboard-metrics">
+        <article class="metric-card metric-localities"><span class="metric-icon"><i class="fas fa-map-marker-alt"></i></span><div><strong id="metric-localities">—</strong><span>Localités</span></div><i class="metric-accent"></i></article>
+        <article class="metric-card metric-water"><span class="metric-icon"><i class="fas fa-water"></i></span><div><strong id="metric-water">—</strong><span>Plans d’eau</span></div><i class="metric-accent"></i></article>
+        <article class="metric-card metric-rivers"><span class="metric-icon"><i class="fas fa-stream"></i></span><div><strong id="metric-rivers">—</strong><span>Cours d’eau</span></div><i class="metric-accent"></i></article>
+        <article class="metric-card metric-equipped"><span class="metric-icon"><i class="fas fa-clinic-medical"></i></span><div><strong id="metric-equipped">—</strong><span>Localités avec équipements</span></div><i class="metric-accent"></i></article>
+      </div>
+      <div class="dashboard-charts">
+        <article class="chart-card"><div class="chart-heading"><div><p>ÉQUIPEMENTS</p><h3>Équipements recensés par type</h3></div><i class="fas fa-chart-bar"></i></div><div id="equipment-chart" class="chart-content"></div></article>
+        <article class="chart-card"><div class="chart-heading"><div><p>STATUT ADMINISTRATIF</p><h3>Répartition des localités</h3></div><i class="fas fa-chart-pie"></i></div><div id="status-chart" class="chart-content donut-content"></div></article>
+      </div>
+    </section>
+
+    <main class="workspace">
+      <aside class="side-panel query-panel" aria-labelledby="query-title">
+        <div class="panel-heading">
+          <div class="heading-icon query-icon"><i class="fas fa-search"></i></div>
+          <div><p class="panel-kicker">EXPLORER</p><h2 id="query-title">Requête sur les couches</h2></div>
+        </div>
+        <p class="panel-intro">Recherchez une entité par son nom ou par une valeur de ses attributs.</p>
+        <form id="query-form">
+          <label for="layer-filter">Couche du projet</label>
+          <div class="select-wrap"><select id="layer-filter"><option value="all">Toutes les couches</option></select><i class="fas fa-chevron-down"></i></div>
+          <div class="criteria-heading"><label>Critères de recherche</label><button id="add-criterion" class="add-criterion" type="button"><i class="fas fa-plus"></i> Ajouter</button></div>
+          <div id="criteria-list" class="criteria-list"></div>
+          <p class="criteria-help">Choisissez un champ puis une valeur existante dans la liste. Tous les critères doivent correspondre.</p>
+          <button class="search-button" type="submit"><i class="fas fa-search"></i> Lancer la requête</button>
+        </form>
+        <div class="query-hint"><i class="fas fa-info-circle"></i><span>Les résultats apparaissent dans le tableau sous la carte. Cliquez sur le nom d’une entité pour la localiser.</span></div>
+      </aside>
+
+      <section class="map-section" aria-label="Carte de la commune de Loumbila">
+        <div class="map-toolbar"><div class="map-status"><span class="live-dot"></span> CARTE EN DIRECT</div><div class="map-toolbar-actions"><div class="map-hint"><i class="fas fa-mouse-pointer"></i> Cliquez sur un élément pour l’identifier</div><button class="geo-button" id="geolocate-button" type="button" title="Me localiser" aria-label="Me localiser"><i class="fas fa-location-arrow"></i><span>Me localiser</span></button></div></div>
+        <div id="map">
+          <div id="popup" class="ol-popup"><a href="#" id="popup-closer" class="ol-popup-closer" aria-label="Fermer"></a><div id="popup-content"></div></div>
+        </div>
+        <div class="map-footer"><span><i class="fas fa-layer-group"></i> Données du projet Loumbila</span><span><i class="fas fa-arrows-alt"></i> Déplacez la carte · molette pour zoomer</span></div>
+        <section class="results-section" aria-live="polite" aria-labelledby="results-title">
+          <div class="results-heading"><div><p class="panel-kicker">EXPLORATION</p><h2 id="results-title">Résultats de la requête</h2></div><div class="results-actions"><span id="result-count" class="count-pill">0 résultat</span><button id="export-results" class="export-button" type="button" disabled><i class="fas fa-file-csv"></i> Exporter CSV</button></div></div>
+          <div class="results-table-wrap"><table class="results-table"><thead><tr id="results-head-row"><th>Résultats</th></tr></thead><tbody id="query-results"><tr class="results-empty"><td>Ajoutez des critères dans le panneau gauche puis lancez la requête.</td></tr></tbody></table></div>
+        </section>
+      </section>
+
+      <aside class="side-panel layers-panel" aria-labelledby="layers-title">
+        <div class="panel-heading">
+          <div class="heading-icon layers-icon"><i class="fas fa-layer-group"></i></div>
+          <div><p class="panel-kicker">CONTENU CARTOGRAPHIQUE</p><h2 id="layers-title">Couches du projet</h2></div>
+        </div>
+        <p class="panel-intro">Activez ou masquez les couches pour composer votre carte.</p>
+        <div class="layer-list" id="layer-list"></div>
+        <div class="legend-note"><span class="legend-swatch"></span><span>Le fond OpenStreetMap fournit le contexte géographique.</span></div>
+        <div class="layer-tip"><i class="fas fa-lightbulb"></i><p><b>Astuce</b><br>Les couches peuvent être combinées. Utilisez les cases pour ajuster leur visibilité.</p></div>
+      </aside>
+    </main>
+    <footer class="app-footer"><span><b>LOUMBILA</b> · WEB SIG</span><span>Développée avec les données du projet cartographique</span><span class="author-signature">By <b>ouedkarim</b></span></footer>
+  </div>
+  <script src="./resources/qgis2web_expressions.js"></script>
+  <script src="./resources/functions.js"></script>
+  <script src="./resources/ol.js"></script>
+  <script src="./resources/ol-layerswitcher.js"></script>
+  <script src="./resources/photon-geocoder-autocomplete.min.js"></script>
+  <script src="./resources/olms.js"></script>
+  <script src="./layers/COMMUNE_DE_LOUMBILA_1.js"></script>
+  <script src="./layers/PLANEAU_2.js"></script>
+  <script src="./layers/COURS_EAU_3.js"></script>
+  <script src="./layers/LOCALITE_4.js"></script>
+  <script src="./styles/COMMUNE_DE_LOUMBILA_1_style.js"></script>
+  <script src="./styles/PLANEAU_2_style.js"></script>
+  <script src="./styles/COURS_EAU_3_style.js"></script>
+  <script src="./styles/LOCALITE_4_style.js"></script>
+  <script src="./layers/layers.js"></script>
+  <script src="./resources/Autolinker.min.js"></script>
+  <script src="./resources/qgis2web.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
