@@ -92,3 +92,41 @@ html,body{font-family:Inter,"Segoe UI",system-ui,-apple-system,BlinkMacSystemFon
 @keyframes flag-tilt{from{transform:translateY(-1px) rotate(-2deg)}to{transform:translateY(1px) rotate(2deg)}}
 @media(prefers-reduced-motion:reduce){.brand-mark.burkina-flag,.brand-mark.burkina-flag:before{animation:none!important}}
 @media(max-width:1120px){.workspace{align-items:start}}
+
+/* Titre et drapeau centrés dans l’en-tête */
+.app-header{
+  display:grid;
+  grid-template-columns:minmax(110px,1fr) minmax(0,4fr) minmax(110px,1fr);
+  justify-items:center;
+  column-gap:18px;
+  row-gap:10px;
+}
+.app-header .brand-mark{
+  grid-column:2;
+  grid-row:1;
+}
+.app-header .brand-copy{
+  grid-column:2;
+  grid-row:2;
+  width:100%;
+  text-align:center;
+}
+.app-header .subtitle{max-width:none}
+.app-header .header-badge{
+  grid-column:3;
+  grid-row:1 / span 2;
+  justify-self:end;
+  margin-left:0;
+}
+@media(max-width:700px){
+  .app-header{
+    grid-template-columns:39px minmax(0,1fr) 39px;
+    column-gap:9px;
+    row-gap:8px;
+  }
+  .app-header .brand-copy h1{
+    font-size:clamp(16px,4vw,19px);
+    overflow-wrap:break-word;
+  }
+  .app-header .eyebrow{font-size:8px;letter-spacing:1px}
+}
