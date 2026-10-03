@@ -135,40 +135,79 @@
   }
 
   function renderEquipmentChart(localities) {
-    var categories = [
-      ['EQecole', 'Écoles'], ['EQhopital', 'Hôpitaux'], ['EQsanitair', 'Centres de santé'],
+    var definitions = [
+      ['EQecole', 'Écoles'], ['EQhopital', 'Hôpitaux'], ['EQsanitair', 'Équipements sanitaires'],
       ['EQposte', 'Postes'], ['EQgendarme', 'Gendarmerie'], ['EQpolice', 'Police'],
-      ['EQdouane', 'Douane'], ['EQcontrole', 'Postes de contrôle'], ['Marche', 'Marchés']
-    ].map(function (item) {
-      return { label: item[1], value: localities.filter(function (feature) { return Number(feature.get(item[0])) > 0; }).length };
-    }).filter(function (item) { return item.value > 0; });
-
+      ['EQdouane', 'Douane'], ['EQcontrole', 'Postes de contrôle'], ['Marche', 'Marchés'],
+      ['EQAnimiste', 'Équipements animistes (EQAnimiste)'],
+      ['EQChretien', 'Équipements chrétiens (EQChretien)'],
+      ['EQMusulman', 'Équipements musulmans (EQMusulman)'],
+      ['EQLCAn', 'Lieux de culte animistes (EQLCAn)'],
+      ['EQLCCh', 'Lieux de culte chrétiens (EQLCCh)'],
+      ['EQLCMu', 'Lieux de culte musulmans (EQLCMu)']
+    ];
+    var categories = definitions.map(function (item) {
+      return { label: item[1], members: localities.filter(function (feature) {
+        return Number(feature.get(item[0])) > 0;
+      }) };
+    }).sort(function (a, b) { return b.members.length - a.members.length; });
     var container = document.getElementById('equipment-chart');
     container.innerHTML = '';
-    if (!categories.length) {
-      container.textContent = 'Aucune donnée d’équipement renseignée.';
-      return;
-    }
-    var rowHeight = 29;
-    var height = categories.length * rowHeight + 12;
-    var maxValue = Math.max.apply(null, categories.map(function (item) { return item.value; }));
-    var chart = svgNode('svg', { viewBox: '0 0 540 ' + height, role: 'img', 'aria-label': 'Nombre de localités par type d’équipement' });
-    categories.forEach(function (item, index) {
-      var y = 9 + index * rowHeight;
-      var label = svgNode('text', { x: 0, y: y + 13, class: 'bar-label' });
-      label.textContent = item.label;
-      chart.appendChild(label);
-      chart.appendChild(svgNode('rect', { x: 157, y: y, width: 300, height: 17, rx: 8, class: 'bar-track' }));
-      chart.appendChild(svgNode('rect', { x: 157, y: y, width: Math.max(5, 300 * item.value / maxValue), height: 17, rx: 8, class: 'bar-fill', fill: ['#176b45', '#c8333c', '#e5b927'][index % 3] }));
-      var value = svgNode('text', { x: 470, y: y + 13, class: 'bar-value' });
-      value.textContent = String(item.value);
-      chart.appendChild(value);
-    });
-    container.appendChild(chart);
     var note = document.createElement('p');
     note.className = 'chart-note';
-    note.textContent = 'Nombre de localités où chaque équipement est recensé ; une localité peut figurer dans plusieurs catégories.';
+    note.textContent = 'Nombre et proportion de localités disposant de chaque équipement. Cliquez sur un type pour voir les localités concernées. Une localité peut appartenir à plusieurs catégories. 0 signifie aucune présence recensée.';
     container.appendChild(note);
+    var detail = document.createElement('section');
+    detail.className = 'equipment-detail';
+    detail.setAttribute('aria-live', 'polite');
+    var rows = [];
+    function selectCategory(category, button) {
+      rows.forEach(function (row) { row.setAttribute('aria-pressed', String(row === button)); });
+      detail.innerHTML = '';
+      var heading = document.createElement('h4');
+      heading.textContent = category.label + ' — ' + category.members.length + ' / ' + localities.length + ' localités';
+      detail.appendChild(heading);
+      var list = document.createElement('ul');
+      category.members.slice().sort(function (a, b) {
+        return localityName(a).localeCompare(localityName(b), 'fr');
+      }).forEach(function (feature) {
+        var item = document.createElement('li');
+        item.textContent = localityName(feature) || 'Localité sans nom';
+        list.appendChild(item);
+      });
+      if (category.members.length) detail.appendChild(list);
+      else {
+        var empty = document.createElement('p');
+        empty.textContent = 'Aucune localité recensée pour ce type d’équipement.';
+        detail.appendChild(empty);
+      }
+    }
+    categories.forEach(function (category) {
+      var percentage = localities.length ? 100 * category.members.length / localities.length : 0;
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'equipment-bar';
+      button.setAttribute('aria-pressed', 'false');
+      var label = document.createElement('span');
+      label.className = 'equipment-label';
+      label.textContent = category.label;
+      var track = document.createElement('span');
+      track.className = 'equipment-track';
+      track.setAttribute('aria-hidden', 'true');
+      var fill = document.createElement('span');
+      fill.style.width = percentage + '%';
+      track.appendChild(fill);
+      var value = document.createElement('strong');
+      value.textContent = category.members.length + ' (' + Math.round(percentage) + ' %)';
+      button.appendChild(label);
+      button.appendChild(track);
+      button.appendChild(value);
+      button.addEventListener('click', function () { selectCategory(category, button); });
+      rows.push(button);
+      container.appendChild(button);
+    });
+    container.appendChild(detail);
+    if (categories.length) selectCategory(categories[0], rows[0]);
   }
 
   function renderStatusChart(localities) {
@@ -732,10 +771,29 @@
     dashboard.hidden = !open;
     document.body.classList.toggle('dashboard-open', open);
     dashboardToggle.setAttribute('aria-expanded', String(open));
-    if (open) window.setTimeout(function () { map.updateSize(); }, 60);
+    document.querySelectorAll('.app-header, .workspace, .app-footer').forEach(function (element) {
+      element.inert = open;
+    });
+    if (open) {
+      updateDashboard();
+      dashboard.scrollTop = 0;
+      dashboardClose.focus();
+    } else {
+      map.updateSize();
+      dashboardToggle.focus();
+    }
   }
   dashboardToggle.addEventListener('click', function () { toggleDashboard(dashboard.hidden); });
   dashboardClose.addEventListener('click', function () { toggleDashboard(false); dashboardToggle.focus(); });
+  dashboard.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') { event.preventDefault(); toggleDashboard(false); }
+    if (event.key === 'Tab') {
+      var focusable = Array.from(dashboard.querySelectorAll('button, [href], select, input, [tabindex="0"]')).filter(function (element) { return !element.disabled; });
+      var first = focusable[0], last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+  });
   queryForm.addEventListener('submit', searchFeatures);
   window.addEventListener('resize', function () { map.updateSize(); });
   window.requestAnimationFrame(function () { map.updateSize(); });

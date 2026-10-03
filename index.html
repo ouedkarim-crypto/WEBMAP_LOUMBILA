@@ -27,8 +27,8 @@
       <button class="header-badge dashboard-toggle" id="dashboard-toggle" type="button" aria-controls="dashboard" aria-expanded="false"><i class="fas fa-chart-pie"></i><span>TABLEAU<br><b>DE BORD</b></span></button>
     </header>
 
-    <section class="dashboard" id="dashboard" aria-labelledby="dashboard-title" hidden>
-      <div class="dashboard-top"><div class="dashboard-heading"><p>TABLEAU DE BORD</p><h2 id="dashboard-title">Repères du territoire</h2></div><button class="dashboard-close" id="dashboard-close" type="button" aria-label="Fermer le tableau de bord"><i class="fas fa-times"></i></button></div>
+    <section class="dashboard" id="dashboard" role="dialog" aria-modal="true" aria-labelledby="dashboard-title" hidden>
+      <div class="dashboard-top"><div class="dashboard-heading"><p>TABLEAU DE BORD</p><h2 id="dashboard-title">Repères du territoire</h2></div><button class="dashboard-close" id="dashboard-close" type="button" aria-label="Fermer le tableau de bord"><i class="fas fa-times"></i><span>Retour à la carte</span></button></div>
       <div class="dashboard-metrics">
         <article class="metric-card metric-localities"><span class="metric-icon"><i class="fas fa-map-marker-alt"></i></span><div><strong id="metric-localities">—</strong><span>Localités</span></div><i class="metric-accent"></i></article>
         <article class="metric-card metric-water"><span class="metric-icon"><i class="fas fa-water"></i></span><div><strong id="metric-water">—</strong><span>Plans d’eau</span></div><i class="metric-accent"></i></article>
@@ -36,7 +36,7 @@
         <article class="metric-card metric-equipped"><span class="metric-icon"><i class="fas fa-clinic-medical"></i></span><div><strong id="metric-equipped">—</strong><span>Localités avec équipements</span></div><i class="metric-accent"></i></article>
       </div>
       <div class="dashboard-charts">
-        <article class="chart-card"><div class="chart-heading"><div><p>ÉQUIPEMENTS</p><h3>Équipements recensés par type</h3></div><i class="fas fa-chart-bar"></i></div><div id="equipment-chart" class="chart-content"></div></article>
+        <article class="chart-card"><div class="chart-heading"><div><p>ÉQUIPEMENTS</p><h3>Localités disposant de chaque équipement</h3></div><i class="fas fa-chart-bar"></i></div><div id="equipment-chart" class="chart-content"></div></article>
         <article class="chart-card"><div class="chart-heading"><div><p>STATUT ADMINISTRATIF</p><h3>Répartition des localités</h3></div><i class="fas fa-chart-pie"></i></div><div id="status-chart" class="chart-content donut-content"></div></article>
       </div>
     </section>
