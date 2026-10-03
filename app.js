@@ -19,7 +19,11 @@
 
   function dataFeatures(layer) {
     if (!layer || !layer.getSource()) return [];
-    return layer.getSource().getFeatures().reduce(function (all, feature) {
+    var source = layer.getSource();
+    // Read the original features: cluster features depend on the rendered map extent.
+    if (source instanceof ol.source.Cluster) source = source.getSource();
+    if (!source) return [];
+    return source.getFeatures().reduce(function (all, feature) {
       var members = feature.get('features');
       return all.concat(Array.isArray(members) ? members : [feature]);
     }, []);
