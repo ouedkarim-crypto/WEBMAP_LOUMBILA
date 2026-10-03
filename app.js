@@ -89,7 +89,7 @@
     if (typeof onSingleClickFeatures === 'function') {
       map.un('singleclick', onSingleClickFeatures);
       map.on('singleclick', function (event) {
-        if (window.webmapEditorEditing) return;
+        if (window.webmapEditorEditing || doHover || sketch) return;
         var pickedCluster = null;
         map.forEachFeatureAtPixel(event.pixel, function (feature, layer) {
           if (layer === lyr_LOCALITE_4) {
@@ -112,9 +112,37 @@
           overlayPopup.setPosition(undefined);
           return;
         }
+        if (members && members.length === 1) {
+          showLocalityPopup(members[0], event.coordinate);
+          return;
+        }
+        container.classList.remove('locality-popup');
         onSingleClickFeatures(event);
       });
     }
+  }
+
+
+  function localityPopupHtml(feature) {
+    var name = String(localityName(feature) || 'Nom non renseigné');
+    var raw = feature.get('Statut');
+    var status = raw == null || String(raw).trim() === '' ? 'Non renseigné' : String(raw).replace(/_/g, ' ').toLocaleLowerCase('fr');
+    status = status.charAt(0).toLocaleUpperCase('fr') + status.slice(1);
+    if (raw === 'VILLAGE_ADMIN') status = 'Village administratif';
+    return '<article class="locality-popup-card" aria-label="Informations de la localité">' +
+      '<header class="locality-popup-header"><span class="locality-popup-icon" aria-hidden="true"><i class="fas fa-map-marker-alt"></i></span>' +
+      '<div><p>LOCALITÉ · LOUMBILA</p><h3>' + escapeHtml(name) + '</h3></div></header>' +
+      '<div class="locality-popup-body"><span class="locality-status-label">Statut de la localité</span>' +
+      '<span class="locality-status-badge"><span aria-hidden="true" class="locality-status-dot"></span>' + escapeHtml(status) +
+      '</span></div></article>';
+  }
+
+  function showLocalityPopup(feature, coordinate) {
+    container.classList.add('locality-popup');
+    popupContent = localityPopupHtml(feature);
+    popupCoord = coordinate || feature.getGeometry().getCoordinates();
+    featuresPopupActive = true;
+    updatePopup();
   }
 
   function updateDashboard() {
@@ -712,7 +740,8 @@
     var popupRows = attributePairs(feature, layer).map(function (item) {
       return '<tr><th>' + escapeHtml(item.label) + '</th><td>' + escapeHtml(item.value) + '</td></tr>';
     }).join('');
-    content.innerHTML = '<div class="popup-title">' + escapeHtml(layerName(layer)) + '</div><table>' + popupRows + '</table>';
+    container.classList.toggle('locality-popup', layer === lyr_LOCALITE_4);
+    content.innerHTML = layer === lyr_LOCALITE_4 ? localityPopupHtml(feature) : '<div class="popup-title">' + escapeHtml(layerName(layer)) + '</div><table>' + popupRows + '</table>'; 
     container.style.display = 'block';
     overlayPopup.setPosition(geometry.getClosestPoint(ol.extent.getCenter(extent)));
   }

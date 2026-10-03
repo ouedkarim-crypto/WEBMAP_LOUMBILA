@@ -213,3 +213,21 @@ body.dashboard-open{overflow:hidden}
   .app-header .eyebrow{font-size:9px}
   .app-header .subtitle{font-size:11px}
 }
+
+/* Fenêtre de présentation des localités */
+.ol-popup.locality-popup{padding:0;min-width:270px;width:320px;max-width:calc(100vw - 40px);border:1px solid #b9d9c7;border-radius:16px;background:#fff;box-shadow:0 15px 40px rgba(16,65,40,.22);overflow:visible}
+.locality-popup #popup-content{max-height:none;overflow:visible}
+.locality-popup-card{overflow:hidden;border-radius:15px}
+.locality-popup-header{display:flex;align-items:center;gap:12px;padding:20px 42px 18px 18px;background:linear-gradient(135deg,#e5f5e8,#d0edda);border-bottom:1px solid #c7e2ce}
+.locality-popup-icon{display:grid;place-items:center;flex:0 0 40px;height:40px;border-radius:12px;background:#176b45;color:#fff;font-size:19px}
+.locality-popup-header p{margin:0 0 5px;color:#477759;font-size:9px;letter-spacing:1px;font-weight:800}
+.locality-popup-header h3{margin:0;color:#154d32;font:800 21px/1.25 Inter,"Segoe UI",sans-serif;overflow-wrap:anywhere}
+.locality-popup-body{padding:18px;display:flex;flex-direction:column;gap:9px}
+.locality-status-label{font-size:11px;font-weight:600;color:#6b8073}
+.locality-status-badge{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;padding:8px 11px;border:1px solid #c5e2ce;border-radius:20px;background:#edf8ef;color:#176b45;font-size:13px;font-weight:700;overflow-wrap:anywhere}
+.locality-status-dot{width:7px;height:7px;border-radius:50%;background:#248954;flex-shrink:0}
+.locality-popup .ol-popup-closer{right:10px;top:10px;width:26px;height:26px;border-radius:50%;background:#fff;color:#315940;display:grid;place-items:center;text-decoration:none;box-shadow:0 2px 5px #174b3215}
+.locality-popup .ol-popup-closer:hover{background:#176b45;color:#fff}
+.locality-popup:before{border-top-color:#b9d9c7}
+.locality-popup:after{border-top-color:#fff}
+@media(max-width:500px){.ol-popup.locality-popup{min-width:230px;width:280px}.locality-popup-header h3{font-size:19px}}
