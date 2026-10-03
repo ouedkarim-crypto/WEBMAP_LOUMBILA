@@ -89,6 +89,7 @@
     if (typeof onSingleClickFeatures === 'function') {
       map.un('singleclick', onSingleClickFeatures);
       map.on('singleclick', function (event) {
+        if (window.webmapEditorEditing) return;
         var pickedCluster = null;
         map.forEachFeatureAtPixel(event.pixel, function (feature, layer) {
           if (layer === lyr_LOCALITE_4) {
@@ -120,7 +121,7 @@
     var localities = dataFeatures(lyr_LOCALITE_4);
     var waterbodies = dataFeatures(lyr_PLANEAU_2);
     var waterways = dataFeatures(lyr_COURS_EAU_3);
-    var equipmentFields = ['EQposte', 'EQecole', 'EQgendarme', 'EQpolice', 'EQdouane', 'EQcontrole', 'EQhopital', 'EQsanitair', 'EQAnimiste', 'EQChretien', 'EQMusulman', 'EQLCAn', 'EQLCCh', 'EQLCMu', 'Marche'];
+    var equipmentFields = Object.keys(lyr_LOCALITE_4.get('fieldAliases') || {}).filter(function(field){return field.indexOf('EQ') === 0 || field === 'Marche';});
     var equippedLocalities = localities.filter(function (feature) {
       return equipmentFields.some(function (field) { return Number(feature.get(field)) > 0; });
     }).length;
@@ -150,7 +151,12 @@
       ['EQLCCh', 'Lieux de culte chrétiens (EQLCCh)'],
       ['EQLCMu', 'Lieux de culte musulmans (EQLCMu)']
     ];
-    var categories = definitions.map(function (item) {
+    var equipmentAliases = lyr_LOCALITE_4.get('fieldAliases') || {};
+    var knownEquipment = definitions.map(function(item){return item[0];});
+    Object.keys(equipmentAliases).forEach(function(field){
+      if(field.indexOf('EQ') === 0 && knownEquipment.indexOf(field) === -1) definitions.push([field,equipmentAliases[field] || field]);
+    });
+    var categories = definitions.filter(function(item){return Object.prototype.hasOwnProperty.call(equipmentAliases,item[0]);}).map(function (item) {
       return { field: item[0], label: item[1], members: localities.filter(function (feature) {
         return Number(feature.get(item[0])) > 0;
       }) };
@@ -227,11 +233,15 @@
     });
     selector.onchange = function () {
       var index = categories.findIndex(function(category) { return category.field === selector.value; });
-      selectCategory(categories[index], rows[index]);
+      if(index >= 0) selectCategory(categories[index], rows[index]);
     };
     var initial = categories.findIndex(function(category) { return category.field === previous; });
     if (initial < 0) initial = 0;
     if (categories.length) selectCategory(categories[initial], rows[initial]);
+    else {
+      detail.textContent = 'Aucun champ d’équipement dans la couche.';
+      document.getElementById('equipment-map-button').disabled = true;
+    }
   }
 
 
@@ -957,5 +967,32 @@
   });
   queryForm.addEventListener('submit', searchFeatures);
   window.addEventListener('resize', function () { map.updateSize(); });
+
+  window.webmapBridge = {
+    layers: [lyr_COMMUNE_DE_LOUMBILA_1, lyr_PLANEAU_2, lyr_COURS_EAU_3, lyr_LOCALITE_4],
+    refresh: function () {
+      var selectedLayer = layerFilter.value;
+      layerList.innerHTML = '';
+      layerFilter.innerHTML = '<option value="all">Toutes les couches</option>';
+      createLayerControls();
+      layerFilter.value = selectedLayer;
+      refreshCriterionFields();
+      updateDashboard();
+      var select = document.getElementById('dashboard-field');
+      var previous = select.value;
+      select.innerHTML = '';
+      var aliases = lyr_LOCALITE_4.get('fieldAliases') || {};
+      Object.keys(aliases).filter(function(field){return field !== 'geometry' && field !== 'Statut' && field.indexOf('EQ') !== 0 && field !== 'Marche';}).forEach(function(field){
+        var option = document.createElement('option'); option.value=field; option.textContent=(aliases[field] || field)+' · '+field; select.appendChild(option);
+      });
+      select.value = Object.prototype.hasOwnProperty.call(aliases,previous) ? previous : (select.options.length ? select.options[0].value : '');
+      renderAttributeChart();
+      currentMatches=[];
+      resultCount.textContent='0 résultat';
+      document.getElementById('results-title').textContent='Résultats de la requête';
+      makeEmptyState('Données actualisées. Relancez une requête pour consulter les résultats.');
+      map.render();
+    }
+  };
   window.requestAnimationFrame(function () { map.updateSize(); });
 }());
