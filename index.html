@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="./resources/photon-geocoder-autocomplete.min.css">
   <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
   <link rel="stylesheet" href="./resources/qgis2web.css">
-  <link rel="stylesheet" href="./app.css?v=20261003-2">
+  <link rel="stylesheet" href="./app.css?v=20261003-3">
 </head>
 <body>
   <div class="app-shell">
@@ -35,9 +35,20 @@
         <article class="metric-card metric-rivers"><span class="metric-icon"><i class="fas fa-stream"></i></span><div><strong id="metric-rivers">—</strong><span>Cours d’eau</span></div><i class="metric-accent"></i></article>
         <article class="metric-card metric-equipped"><span class="metric-icon"><i class="fas fa-clinic-medical"></i></span><div><strong id="metric-equipped">—</strong><span>Localités avec équipements</span></div><i class="metric-accent"></i></article>
       </div>
+      <div class="dashboard-tabs" role="tablist" aria-label="Graphiques des localités">
+        <button type="button" role="tab" id="tab-equipment" aria-controls="panel-equipment" aria-selected="true" tabindex="0">Équipements</button>
+        <button type="button" role="tab" id="tab-status" aria-controls="panel-status" aria-selected="false" tabindex="-1">Statut administratif</button>
+        <button type="button" role="tab" id="tab-fields" aria-controls="panel-fields" aria-selected="false" tabindex="-1">Autres champs</button>
+      </div>
       <div class="dashboard-charts">
-        <article class="chart-card"><div class="chart-heading"><div><p>ÉQUIPEMENTS</p><h3>Localités disposant de chaque équipement</h3></div><i class="fas fa-chart-bar"></i></div><div id="equipment-chart" class="chart-content"></div></article>
-        <article class="chart-card"><div class="chart-heading"><div><p>STATUT ADMINISTRATIF</p><h3>Répartition des localités</h3></div><i class="fas fa-chart-pie"></i></div><div id="status-chart" class="chart-content donut-content"></div></article>
+        <article class="chart-card" role="tabpanel" id="panel-equipment" aria-labelledby="tab-equipment"><div class="chart-heading"><div><p>ÉQUIPEMENTS</p><h3>Localités disposant de chaque équipement</h3></div><i class="fas fa-chart-bar"></i></div><div id="equipment-chart" class="chart-content"></div></article>
+        <article class="chart-card" role="tabpanel" id="panel-status" aria-labelledby="tab-status" hidden><div class="chart-heading"><div><p>STATUT ADMINISTRATIF</p><h3>Répartition des localités</h3></div><i class="fas fa-chart-pie"></i></div><div id="status-chart" class="chart-content donut-content"></div></article>
+        <article class="chart-card" role="tabpanel" id="panel-fields" aria-labelledby="tab-fields" hidden>
+          <div class="chart-heading"><div><p>TABLE ATTRIBUTAIRE DES LOCALITÉS</p><h3>Répartition par valeur du champ</h3></div></div>
+          <label for="dashboard-field">Champ à analyser</label>
+          <select id="dashboard-field"></select>
+          <div id="attribute-chart" class="chart-content" aria-live="polite"></div>
+        </article>
       </div>
     </section>
 
@@ -101,6 +112,6 @@
   <script src="./layers/layers.js"></script>
   <script src="./resources/Autolinker.min.js"></script>
   <script src="./resources/qgis2web.js"></script>
-  <script src="./app.js?v=20261003-2"></script>
+  <script src="./app.js?v=20261003-3"></script>
 </body>
 </html>

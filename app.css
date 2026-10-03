@@ -170,3 +170,15 @@ body.dashboard-open{overflow:hidden}
   .equipment-track{grid-column:1/-1;grid-row:2}
   .equipment-detail ul{columns:1}
 }
+
+/* Navigation des graphiques par thème */
+.dashboard-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.dashboard-tabs [role="tab"]{border:1px solid #bad3e2;border-radius:10px;background:#fff;color:#23465f;padding:12px 18px;font:600 14px Inter,"Segoe UI",sans-serif;cursor:pointer}
+.dashboard-tabs [aria-selected="true"]{background:#176b45;border-color:#176b45;color:#fff}
+.dashboard-tabs [role="tab"]:focus-visible{outline:3px solid #e5b927;outline-offset:2px}
+.dashboard-open .dashboard-charts{display:block}
+.dashboard-charts [hidden]{display:none!important}
+.dashboard-charts [role="tabpanel"]{width:100%;max-width:1200px;margin:0 auto}
+#dashboard-field{display:block;margin:8px 0 18px;padding:10px 12px;width:min(100%,450px);border:1px solid #bad3e2;border-radius:8px;background:#fff;color:#23465f;font:14px Inter,"Segoe UI",sans-serif}
+.equipment-label{overflow-wrap:anywhere}
+@media(max-width:700px){.dashboard-tabs [role="tab"]{padding:10px;font-size:12px}}

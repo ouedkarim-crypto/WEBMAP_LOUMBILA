@@ -763,8 +763,112 @@
     exportResultsButton.disabled = false;
   }
 
+
+  function setupDashboardTabs() {
+    var tabs = Array.from(dashboard.querySelectorAll('[role="tab"]'));
+    function activate(tab) {
+      tabs.forEach(function (item) {
+        var selected = item === tab;
+        item.setAttribute('aria-selected', String(selected));
+        item.tabIndex = selected ? 0 : -1;
+        document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
+      });
+    }
+    tabs.forEach(function (tab, index) {
+      tab.addEventListener('click', function () { activate(tab); });
+      tab.addEventListener('keydown', function (event) {
+        var next;
+        if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+        if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
+        if (event.key === 'Home') next = 0;
+        if (event.key === 'End') next = tabs.length - 1;
+        if (next !== undefined) { event.preventDefault(); activate(tabs[next]); tabs[next].focus(); }
+      });
+    });
+    var select = document.getElementById('dashboard-field');
+    var aliases = lyr_LOCALITE_4.get('fieldAliases') || {};
+    var labels = {Nom:'Nom de la localité', Nom_admin:'Nom administratif', CLcommune:'Chef-lieu de commune', CLprovince:'Chef-lieu de province', CLregion:'Chef-lieu de région', Code_ADM:'Code administratif', Code_GEO:'Code géographique', OBJECTID:'Identifiant'};
+    Object.keys(aliases).filter(function (field) {
+      return field !== 'geometry' && field !== 'Statut' && field.indexOf('EQ') !== 0 && field !== 'Marche';
+    }).forEach(function (field) {
+      var option = document.createElement('option');
+      option.value = field;
+      option.textContent = (labels[field] || aliases[field] || field) + ' · ' + field;
+      select.appendChild(option);
+    });
+    select.value = 'CLcommune';
+    select.addEventListener('change', renderAttributeChart);
+    renderAttributeChart();
+  }
+
+  function renderAttributeChart() {
+    var select = document.getElementById('dashboard-field');
+    var field = select.value;
+    var localities = dataFeatures(lyr_LOCALITE_4);
+    var counts = new Map();
+    localities.forEach(function (feature) {
+      var value = feature.get(field);
+      var label = value == null || String(value).trim() === '' ? 'Non renseigné' : String(value);
+      if (/^CL(commune|province|region)$/.test(field)) {
+        if (Number(value) === 1 && value != null) label = 'Oui';
+        else if (Number(value) === 0 && value != null && String(value).trim() !== '') label = 'Non';
+      }
+      if (!counts.has(label)) counts.set(label, []);
+      counts.get(label).push(feature);
+    });
+    var container = document.getElementById('attribute-chart');
+    container.innerHTML = '';
+    var note = document.createElement('p');
+    note.className = 'chart-note';
+    note.textContent = 'Champ : ' + field + ' — ' + localities.length + ' localités. Cliquez sur une valeur pour afficher les noms correspondants.';
+    container.appendChild(note);
+    var detail = document.createElement('section');
+    detail.className = 'equipment-detail';
+    detail.setAttribute('aria-live', 'polite');
+    var buttons = [];
+    Array.from(counts.entries()).sort(function (a,b) { return b[1].length-a[1].length || a[0].localeCompare(b[0], 'fr'); }).forEach(function (entry) {
+      var percent = localities.length ? 100 * entry[1].length / localities.length : 0;
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'equipment-bar';
+      button.setAttribute('aria-pressed', 'false');
+      var label = document.createElement('span');
+      label.className = 'equipment-label';
+      label.textContent = entry[0];
+      var track = document.createElement('span');
+      track.className = 'equipment-track';
+      track.setAttribute('aria-hidden', 'true');
+      var fill = document.createElement('span');
+      fill.style.width = percent + '%';
+      track.appendChild(fill);
+      var total = document.createElement('strong');
+      total.textContent = entry[1].length + ' (' + Math.round(percent) + ' %)';
+      button.appendChild(label); button.appendChild(track); button.appendChild(total);
+      button.addEventListener('click', function () {
+        buttons.forEach(function (item) { item.setAttribute('aria-pressed', String(item === button)); });
+        detail.innerHTML = '';
+        var heading = document.createElement('h4');
+        heading.textContent = entry[0] + ' — ' + entry[1].length + ' localités';
+        detail.appendChild(heading);
+        var list = document.createElement('ul');
+        entry[1].slice().sort(function(a,b){return localityName(a).localeCompare(localityName(b),'fr');}).forEach(function(feature){
+          var item = document.createElement('li');
+          item.textContent = localityName(feature) || 'Localité sans nom';
+          list.appendChild(item);
+        });
+        detail.appendChild(list);
+      });
+      buttons.push(button);
+      container.appendChild(button);
+    });
+    detail.hidden = !buttons.length;
+    container.appendChild(detail);
+    if (buttons.length) buttons[0].click();
+  }
+
   setupLocalityClusters();
   updateDashboard();
+  setupDashboardTabs();
   createLayerControls();
   setupGeolocation();
   addCriterion();
@@ -792,7 +896,7 @@
   dashboard.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') { event.preventDefault(); toggleDashboard(false); }
     if (event.key === 'Tab') {
-      var focusable = Array.from(dashboard.querySelectorAll('button, [href], select, input, [tabindex="0"]')).filter(function (element) { return !element.disabled; });
+      var focusable = Array.from(dashboard.querySelectorAll('button, [href], select, input, [tabindex="0"]')).filter(function (element) { return !element.disabled && element.getClientRects().length > 0 && element.tabIndex >= 0; });
       var first = focusable[0], last = focusable[focusable.length - 1];
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
