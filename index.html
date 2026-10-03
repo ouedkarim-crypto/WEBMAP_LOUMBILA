@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="./resources/photon-geocoder-autocomplete.min.css">
   <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
   <link rel="stylesheet" href="./resources/qgis2web.css">
-  <link rel="stylesheet" href="./app.css?v=20261003-3">
+  <link rel="stylesheet" href="./app.css?v=20261003-4">
 </head>
 <body>
   <div class="app-shell">
@@ -28,7 +28,7 @@
     </header>
 
     <section class="dashboard" id="dashboard" role="dialog" aria-modal="true" aria-labelledby="dashboard-title" hidden>
-      <div class="dashboard-top"><div class="dashboard-heading"><p>TABLEAU DE BORD</p><h2 id="dashboard-title">Repères du territoire</h2></div><button class="dashboard-close" id="dashboard-close" type="button" aria-label="Fermer le tableau de bord"><i class="fas fa-times"></i><span>Retour à la carte</span></button></div>
+      <div class="dashboard-top"><div class="dashboard-heading"><p>LOUMBILA · OBSERVATOIRE DES LOCALITÉS</p><h2 id="dashboard-title">Équipements des villages</h2></div><button class="dashboard-close" id="dashboard-close" type="button" aria-label="Fermer le tableau de bord"><i class="fas fa-times"></i><span>Retour à la carte</span></button></div>
       <div class="dashboard-metrics">
         <article class="metric-card metric-localities"><span class="metric-icon"><i class="fas fa-map-marker-alt"></i></span><div><strong id="metric-localities">—</strong><span>Localités</span></div><i class="metric-accent"></i></article>
         <article class="metric-card metric-water"><span class="metric-icon"><i class="fas fa-water"></i></span><div><strong id="metric-water">—</strong><span>Plans d’eau</span></div><i class="metric-accent"></i></article>
@@ -41,7 +41,13 @@
         <button type="button" role="tab" id="tab-fields" aria-controls="panel-fields" aria-selected="false" tabindex="-1">Autres champs</button>
       </div>
       <div class="dashboard-charts">
-        <article class="chart-card" role="tabpanel" id="panel-equipment" aria-labelledby="tab-equipment"><div class="chart-heading"><div><p>ÉQUIPEMENTS</p><h3>Localités disposant de chaque équipement</h3></div><i class="fas fa-chart-bar"></i></div><div id="equipment-chart" class="chart-content"></div></article>
+        <article class="chart-card equipment-layout" role="tabpanel" id="panel-equipment" aria-labelledby="tab-equipment">
+          <section class="equipment-overview"><h3>Villages équipés par catégorie</h3><div id="equipment-chart" class="chart-content"></div></section>
+          <section class="equipment-selection"><h3>Répartition des équipements</h3><p>Choisissez un indicateur pour consulter les villages concernés.</p>
+          <label for="equipment-selector">Équipement</label><select id="equipment-selector"></select>
+          <div id="equipment-detail" aria-live="polite"></div>
+          <button id="equipment-map-button" type="button">Voir ces villages sur la carte</button></section>
+        </article>
         <article class="chart-card" role="tabpanel" id="panel-status" aria-labelledby="tab-status" hidden><div class="chart-heading"><div><p>STATUT ADMINISTRATIF</p><h3>Répartition des localités</h3></div><i class="fas fa-chart-pie"></i></div><div id="status-chart" class="chart-content donut-content"></div></article>
         <article class="chart-card" role="tabpanel" id="panel-fields" aria-labelledby="tab-fields" hidden>
           <div class="chart-heading"><div><p>TABLE ATTRIBUTAIRE DES LOCALITÉS</p><h3>Répartition par valeur du champ</h3></div></div>
@@ -112,6 +118,6 @@
   <script src="./layers/layers.js"></script>
   <script src="./resources/Autolinker.min.js"></script>
   <script src="./resources/qgis2web.js"></script>
-  <script src="./app.js?v=20261003-3"></script>
+  <script src="./app.js?v=20261003-4"></script>
 </body>
 </html>

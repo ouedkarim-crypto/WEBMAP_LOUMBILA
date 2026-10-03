@@ -182,3 +182,23 @@ body.dashboard-open{overflow:hidden}
 #dashboard-field{display:block;margin:8px 0 18px;padding:10px 12px;width:min(100%,450px);border:1px solid #bad3e2;border-radius:8px;background:#fff;color:#23465f;font:14px Inter,"Segoe UI",sans-serif}
 .equipment-label{overflow-wrap:anywhere}
 @media(max-width:700px){.dashboard-tabs [role="tab"]{padding:10px;font-size:12px}}
+
+/* Observatoire des équipements : graphique et sélection côte à côte */
+.dashboard-open .dashboard-top{border-bottom:4px solid #f2c94c;padding-bottom:24px}
+.dashboard-open .dashboard-heading h2{color:#173f54;font-size:32px}
+.dashboard-charts .equipment-layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr);gap:26px;background:transparent;border:0;padding:0;max-width:1400px}
+.equipment-overview,.equipment-selection{background:#fff;border:1px solid #d5e6ea;border-radius:12px;padding:28px}
+.equipment-layout h3{margin:0 0 16px;color:#173f54;font-size:23px}
+.equipment-selection>p{color:#647b85;line-height:1.6;font-size:15px;margin-bottom:24px}
+.equipment-selection label{display:block;font-weight:600;color:#173f54;margin-bottom:8px}
+#equipment-selector{width:100%;padding:15px;border:1px solid #cbdcd7;border-radius:9px;background:#fff;color:#173f54;font-size:16px}
+.equipment-summary{color:#078351;font-size:25px;margin:30px 0}
+#equipment-detail ul{columns:2;padding-left:24px;color:#526f64;line-height:1.8}
+#equipment-detail li{break-inside:avoid}
+#equipment-map-button{margin-top:28px;width:100%;padding:16px;border:0;border-radius:9px;background:#078351;color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+#equipment-map-button:disabled{opacity:.45;cursor:default}
+.equipment-overview .equipment-bar{font-size:14px;grid-template-columns:minmax(140px,1fr) minmax(90px,1.6fr) 65px}
+.equipment-overview .equipment-track{height:21px;background:#edf3ee;border-radius:5px}
+.equipment-overview .equipment-track>span{border-radius:5px}
+@media(max-width:900px){.dashboard-charts .equipment-layout{grid-template-columns:1fr}.equipment-overview,.equipment-selection{padding:20px}.dashboard-open .dashboard-heading h2{font-size:24px}}
+@media(max-width:500px){.equipment-overview .equipment-bar{grid-template-columns:minmax(0,1fr) 65px}.equipment-overview .equipment-track{grid-column:1/-1}#equipment-detail ul{columns:1}}

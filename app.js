@@ -151,7 +151,7 @@
       ['EQLCMu', 'Lieux de culte musulmans (EQLCMu)']
     ];
     var categories = definitions.map(function (item) {
-      return { label: item[1], members: localities.filter(function (feature) {
+      return { field: item[0], label: item[1], members: localities.filter(function (feature) {
         return Number(feature.get(item[0])) > 0;
       }) };
     }).sort(function (a, b) { return b.members.length - a.members.length; });
@@ -161,8 +161,16 @@
     note.className = 'chart-note';
     note.textContent = 'Nombre et proportion de localités disposant de chaque équipement. Cliquez sur un type pour voir les localités concernées. Une localité peut appartenir à plusieurs catégories. 0 signifie aucune présence recensée.';
     container.appendChild(note);
-    var detail = document.createElement('section');
-    detail.className = 'equipment-detail';
+    var previous = document.getElementById('equipment-selector').value;
+    var selector = document.getElementById('equipment-selector');
+    selector.innerHTML = '';
+    categories.forEach(function(category) {
+      var option = document.createElement('option');
+      option.value = category.field;
+      option.textContent = category.label;
+      selector.appendChild(option);
+    });
+    var detail = document.getElementById('equipment-detail');
     detail.setAttribute('aria-live', 'polite');
     var rows = [];
     function selectCategory(category, button) {
@@ -170,7 +178,13 @@
       detail.innerHTML = '';
       var heading = document.createElement('h4');
       heading.textContent = category.label + ' — ' + category.members.length + ' / ' + localities.length + ' localités';
+      heading.className = 'equipment-summary';
+      heading.textContent = category.members.length + ' villages sur ' + localities.length + ' · ' + (localities.length ? Math.round(100 * category.members.length / localities.length) : 0) + ' %';
       detail.appendChild(heading);
+      selector.value = category.field;
+      var mapButton = document.getElementById('equipment-map-button');
+      mapButton.disabled = !category.members.length;
+      mapButton.onclick = function () { queryEquipmentLayer(category.field, category.label); };
       var list = document.createElement('ul');
       category.members.slice().sort(function (a, b) {
         return localityName(a).localeCompare(localityName(b), 'fr');
@@ -186,7 +200,7 @@
         detail.appendChild(empty);
       }
     }
-    categories.forEach(function (category) {
+    categories.forEach(function (category, index) {
       var percentage = localities.length ? 100 * category.members.length / localities.length : 0;
       var button = document.createElement('button');
       button.type = 'button';
@@ -200,9 +214,10 @@
       track.setAttribute('aria-hidden', 'true');
       var fill = document.createElement('span');
       fill.style.width = percentage + '%';
+      fill.style.backgroundColor = ['#078351', '#d4aa00', '#d13e4c'][index % 3];
       track.appendChild(fill);
       var value = document.createElement('strong');
-      value.textContent = category.members.length + ' (' + Math.round(percentage) + ' %)';
+      value.textContent = category.members.length + ' / ' + localities.length;
       button.appendChild(label);
       button.appendChild(track);
       button.appendChild(value);
@@ -210,8 +225,46 @@
       rows.push(button);
       container.appendChild(button);
     });
-    container.appendChild(detail);
-    if (categories.length) selectCategory(categories[0], rows[0]);
+    selector.onchange = function () {
+      var index = categories.findIndex(function(category) { return category.field === selector.value; });
+      selectCategory(categories[index], rows[index]);
+    };
+    var initial = categories.findIndex(function(category) { return category.field === previous; });
+    if (initial < 0) initial = 0;
+    if (categories.length) selectCategory(categories[initial], rows[initial]);
+  }
+
+
+  function queryEquipmentLayer(field, label) {
+    // Equipment attributes belong to the original LOCALITE source, never to another layer.
+    var features = dataFeatures(lyr_LOCALITE_4).filter(function(feature) {
+      return Number(feature.get(field)) > 0;
+    });
+    currentMatches = features.map(function(feature) { return {feature:feature, layer:lyr_LOCALITE_4}; });
+    layerFilter.value = String(layersList.indexOf(lyr_LOCALITE_4));
+    refreshCriterionFields();
+    resultCount.textContent = features.length + (features.length === 1 ? ' localité' : ' localités') + ' · ' + label;
+    document.getElementById('results-title').textContent = 'Localités avec ' + label.toLocaleLowerCase('fr');
+    if (features.length) {
+      renderResultTable(currentMatches);
+      exportResultsButton.disabled = false;
+    } else makeEmptyState('Aucune localité recensée pour cet équipement.');
+    lyr_LOCALITE_4.setVisible(true);
+    var checkbox = document.getElementById('layer-toggle-' + layersList.indexOf(lyr_LOCALITE_4));
+    if (checkbox) { checkbox.checked = true; checkbox.dispatchEvent(new Event('change')); }
+    toggleDashboard(false);
+    if (typeof collection !== 'undefined') {
+      collection.clear();
+      features.forEach(function(feature) { collection.push(feature); });
+    }
+    if (features.length) {
+      var extent = ol.extent.createEmpty();
+      features.forEach(function(feature) {
+        if (feature.getGeometry()) ol.extent.extend(extent, feature.getGeometry().getExtent());
+      });
+      map.getView().fit(extent, {size:map.getSize(),padding:[70,50,70,50],maxZoom:15,duration:450});
+    }
+    document.getElementById('map').scrollIntoView({behavior:'smooth',block:'center'});
   }
 
   function renderStatusChart(localities) {
